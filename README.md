@@ -35,7 +35,7 @@ Notes learned the hard way (baked into the image):
 ## Install
 
 ### As a Krateo composition (intended)
-1. Package + publish the chart: `helm package chart && helm push hyperdx-observability-0.1.0.tgz oci://ghcr.io/braghettos`
+1. Package + publish the chart: `helm package chart && helm push hyperdx-observability-0.1.0.tgz oci://ghcr.io/krateo-blueprints/charts`
 2. Apply `compositiondefinition.example.yaml` (edit the chart URL/version), then create the
    `HyperdxObservability` instance CR. Krateo renders the chart server-side (so `lookup` works and
    the admin password is generated + persisted).
