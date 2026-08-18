@@ -19,7 +19,7 @@
       "properties": {
         "repository": {
           "type": "string",
-          "default": "ghcr.io/braghettos/krateo-alert-troubleshooter",
+          "default": "ghcr.io/krateo-agentiko/alert-troubleshooter",
           "title": "repository",
           "description": "Container image repository."
         },

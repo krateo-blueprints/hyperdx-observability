@@ -14,4 +14,4 @@ permissions:
 
 jobs:
   security:
-    uses: braghettos/.github/.github/workflows/security.yml@main
+    uses: krateo-blueprints/.github/.github/workflows/security.yml@main

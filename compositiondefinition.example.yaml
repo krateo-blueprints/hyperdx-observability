@@ -11,7 +11,7 @@ metadata:
     "krateo.io/connector-verbose": "true"
 spec:
   chart:
-    url: oci://ghcr.io/braghettos/hyperdx-observability
+    url: oci://ghcr.io/krateo-blueprints/hyperdx-observability
     version: 0.1.2
 ---
 # The instance CR (shape mirrors values.schema.json — the "if"). Creating this deploys the feature.
