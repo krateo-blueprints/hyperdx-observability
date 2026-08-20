@@ -1,7 +1,7 @@
 # hyperdx-observability — values (the "if": every toggle that shapes the assembly).
 image:
-  repository: ghcr.io/krateo-agentiko/alert-troubleshooter
-  tag: v0.2.2
+  repository: ghcr.io/krateo-platformops/alert-troubleshooter
+  tag: 0.2.18
   pullPolicy: IfNotPresent
 
 # HyperDX (ClickStack) endpoint + admin identity the reconciler uses (session API). On a fresh
