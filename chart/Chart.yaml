@@ -6,8 +6,21 @@ description: >
   Autopilot root-cause analysis captured as a TroubleshootingReport CR. The assembly/installer unit
   for the feature; feature toggles live in values.yaml (the "if").
 type: application
-version: 0.1.2
-appVersion: "0.1.2"
-keywords: [krateo, observability, hyperdx, clickstack, alerts, autopilot, troubleshooting]
+# Substituted from the plain-semver git tag by .github/workflows/release.yaml. Never set by hand.
+version: CHART_VERSION
+appVersion: CHART_VERSION
+home: https://github.com/krateo-blueprints/hyperdx-observability
+icon: https://raw.githubusercontent.com/krateo-platformops/krateo/main/docs/media/logo.svg
+# The Marketplace's filter chips: the domain and the kind (krateo-blueprints/charts PUBLISHING.md rule 3).
+keywords:
+  - observability
+  - hyperdx
+  - clickstack
+  - alerts
+  - autopilot
+  - troubleshooting
+  - blueprint
+sources:
+  - https://github.com/krateo-blueprints/hyperdx-observability
 maintainers:
   - name: Krateo

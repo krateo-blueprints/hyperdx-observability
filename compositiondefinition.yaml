@@ -1,0 +1,18 @@
+# Registers hyperdx-observability as a Krateo composition. core-provider reads the chart, generates
+# a CRD from its values.schema.json, and serves it as composition.krateo.io/v<version>, kind
+# HyperdxObservability.
+#
+# CHART_VERSION is stamped from the git tag by .github/workflows/release.yaml, which ships the
+# stamped copy inside the chart and attaches it to the GitHub release. Register from the release
+# copy, not this branch, or you register a literal placeholder.
+apiVersion: core.krateo.io/v1alpha1
+kind: CompositionDefinition
+metadata:
+  name: hyperdx-observability
+  namespace: krateo-system
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  chart:
+    url: oci://ghcr.io/krateo-blueprints/charts/hyperdx-observability
+    version: CHART_VERSION

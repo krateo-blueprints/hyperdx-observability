@@ -35,10 +35,44 @@ Notes learned the hard way (baked into the image):
 ## Install
 
 ### As a Krateo composition (intended)
-1. Package + publish the chart: `helm package chart && helm push hyperdx-observability-0.1.0.tgz oci://ghcr.io/krateo-blueprints/charts`
-2. Apply `compositiondefinition.example.yaml` (edit the chart URL/version), then create the
-   `HyperdxObservability` instance CR. Krateo renders the chart server-side (so `lookup` works and
-   the admin password is generated + persisted).
+1. Install it from the portal Marketplace, or register it by hand: apply the stamped
+   `compositiondefinition.yaml` attached to the GitHub release of the version you want
+   (`https://github.com/krateo-blueprints/hyperdx-observability/releases/download/<tag>/compositiondefinition.yaml`).
+   The copy on this branch carries the `CHART_VERSION` placeholder.
+2. Create the `HyperdxObservability` instance CR. Its apiVersion is the chart version with dots
+   turned to hyphens: chart `0.1.3` is served as `composition.krateo.io/v0-1-3`. Krateo renders the
+   chart server-side (so `lookup` works and the admin password is generated + persisted).
+
+```yaml
+apiVersion: composition.krateo.io/v0-1-3   # v<chart version, dots as hyphens>
+kind: HyperdxObservability
+metadata:
+  name: hyperdx-observability
+  namespace: krateo-system
+spec:
+  installCRDs: true
+  hyperdx:
+    url: http://krateo-clickstack.krateo-system.svc:3000
+    adminEmail: admin@krateo.io
+    # adminPassword left empty -> auto-generated + persisted in hyperdx-admin-creds
+  autopilot:
+    a2aUrl: http://krateo-autopilot.krateo-system.svc:8080/
+  reconciler:
+    enabled: true
+    interval: 60
+  troubleshooter:
+    enabled: true
+  defaultAlerts:
+    enabled: true
+    errorLogVolume:
+      enabled: true
+      threshold: 1
+      interval: "5m"
+    warningLogVolume:
+      enabled: true
+      threshold: 25
+      interval: "15m"
+```
 
 ### Directly with Helm (dev)
 ```
@@ -71,3 +105,16 @@ spec:
 ```
 `kubectl get alerts -n krateo-system` shows each alert's mirrored `STATE`; `kubectl get tsr`
 lists the troubleshooting reports.
+
+## Release
+
+Tag a plain semver (`X.Y.Z`, no `v`) and push it. `.github/workflows/release.yaml` stamps the
+`CHART_VERSION` placeholder in `chart/Chart.yaml` and `compositiondefinition.yaml`, pushes the chart
+to `oci://ghcr.io/krateo-blueprints/charts/hyperdx-observability`, and publishes the same archive,
+with the stamped `compositiondefinition.yaml` inside it, to the Marketplace's `blueprints` index
+(`https://krateo-blueprints.github.io/charts/blueprints`), per the organisation's publishing
+standard (krateo-blueprints/charts `PUBLISHING.md`). Nothing is bumped by hand.
+
+Versions up to 0.1.2 were pushed to `oci://ghcr.io/krateo-blueprints/hyperdx-observability`, outside
+`charts/`. They stay there and are never deleted; every later version is published only at the path
+above.
