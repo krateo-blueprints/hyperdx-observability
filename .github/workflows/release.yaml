@@ -8,8 +8,57 @@ on:
     tags: ['v*']
 
 jobs:
+  # Whether this run is a release, and of which version. A `v*` tag releases the version it names (the tag without
+  # its `v`), which must be chart/Chart.yaml's; a push to main releases nothing and behaves as before.
+  resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.r.outputs.release }}
+      version: ${{ steps.r.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Resolve the release and its version
+        id: r
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          declared="$(sed -n 's/^version:[[:space:]]*//p' chart/Chart.yaml | tr -d "\"' ")"
+          declared="${declared%%$'\n'*}"
+          if [ "$REF_TYPE" = tag ]; then
+            version="${REF_NAME#v}"
+            [ "$declared" = "$version" ] \
+              || { echo "::error::tag ${REF_NAME} releases ${version}, but chart/Chart.yaml says ${declared}"; exit 1; }
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            version="$declared"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+  # krateo-blueprints/charts PUBLISHING.md rule 12: a release runs this repository's preflight before it publishes
+  # anything. The shared job first refuses a version that is not a plain X.Y.Z (rule 13's pattern), then runs
+  # hack/release-preflight if there is one. Only the tag run is a release; a push to main skips it.
+  release-preflight:
+    needs: resolve
+    if: needs.resolve.outputs.release == 'true'
+    uses: krateo-blueprints/charts/.github/workflows/release-preflight.yaml@70095ab05f1c5dc6c8dd39d0b1fdbbc7382a841c # 1.4.3
+    permissions:
+      contents: read
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+
   package-push:
     name: Package and push chart
+    needs:
+      - resolve
+      - release-preflight
+    # A main push skips release-preflight, and that must not stop it; a refused release must.
+    if: ${{ !cancelled() && needs.resolve.result == 'success' && needs.release-preflight.result != 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
