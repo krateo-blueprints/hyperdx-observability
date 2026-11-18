@@ -57,8 +57,9 @@ jobs:
     needs:
       - resolve
       - release-preflight
-    # A main push skips release-preflight, and that must not stop it; a refused release must.
-    if: ${{ !cancelled() && needs.resolve.result == 'success' && needs.release-preflight.result != 'failure' }}
+    # A main push skips release-preflight, and that must not stop it; a refused or cancelled preflight must. The
+    # results are enumerated, because "not failure" would also let a cancelled preflight through.
+    if: ${{ !cancelled() && needs.resolve.result == 'success' && (needs.release-preflight.result == 'success' || needs.release-preflight.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
