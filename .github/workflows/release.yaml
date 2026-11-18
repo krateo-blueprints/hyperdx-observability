@@ -29,7 +29,22 @@ jobs:
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
+      # krateo-blueprints/charts PUBLISHING.md rule 14: charts are pushed through the organisation's chart-push
+      # action, whose push.sh retries GHCR's tag read-after-write race (and only that) onto the same digest. Locate
+      # mode: it outputs push.sh's path, and the next step runs it once per chart.
+      - name: Locate the shared chart push
+        id: chart-push
+        uses: krateo-platformops/.github/.github/actions/chart-push@653ac1e67d761584993a774c76963514968b3650 # main 2026-11-18
+
       - name: Package + push
+        env:
+          CHART_PUSH: ${{ steps.chart-push.outputs.path }}
+          # push.sh reads the manifest back with these, after the registry login above.
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
         run: |
           helm package chart --destination /tmp/dist
-          helm push /tmp/dist/hyperdx-observability-*.tgz oci://ghcr.io/${{ github.repository_owner }}
+          # push.sh takes one archive per call, so the glob is looped over.
+          for tgz in /tmp/dist/hyperdx-observability-*.tgz; do
+            bash "${CHART_PUSH}" "$tgz" oci://ghcr.io/${{ github.repository_owner }}
+          done
